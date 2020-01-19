@@ -1,0 +1,36 @@
+with "cortex_m4f.gpr";
+with "ATSAMD51J19A.gpr";
+
+project PyGamer_BSP is
+   for Source_Dirs use ("src");
+   for Object_Dir use "obj";
+
+   for Target use "arm-eabi";
+   for Runtime ("Ada") use "zfp-cortex-m4f";
+
+   package Device_Configuration is
+      for CPU_Name use "ARM Cortex-M4F";
+      for Number_Of_Interrupts use "136";
+
+      for Memories use ("HSRAM", "FLASH", "BKUPRAM");
+      for Boot_Memory use "FLASH";
+
+      for Mem_Kind ("HSRAM") use "ram";
+      for Address ("HSRAM") use "0x20000000";
+      for Size ("HSRAM") use "0x30000";
+
+      --  Start flash after the uf2 bootloader
+      for Mem_Kind ("FLASH") use "rom";
+      for Address ("FLASH") use "16384";
+      for Size ("FLASH") use "507904";
+
+      for Mem_Kind ("BKUPRAM") use "ram";
+      for Address ("BKUPRAM") use "0x47000000";
+      for Size ("BKUPRAM") use "0x2000";
+
+      --  Only one interrupt is used by this BSP
+      for Interrupt ("31") use "dmac_tcmpl_0_IRQn";
+
+   end Device_Configuration;
+
+end PyGamer_BSP;
