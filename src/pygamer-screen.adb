@@ -40,8 +40,6 @@ package body PyGamer.Screen is
       Time => PyGamer.Time.HAL_Delay);
 
    procedure Initialize;
-   procedure Transmit_DMA (Data : HAL.UInt8_Array)
-     with Inline;
 
    ----------------
    -- Initialize --
@@ -218,40 +216,21 @@ package body PyGamer.Screen is
       TFT_CS.Set;
    end End_Pixel_TX;
 
-   procedure Transmit_DMA (Data : HAL.UInt8_Array) is
-   begin
-      Clear (DMA_Screen_SPI, Transfer_Complete);
-
-      Set_Data_Transfer (DMA_Descs (DMA_Screen_SPI),
-                         Block_Transfer_Count => Data'Length,
-                         Src_Addr             => Data'Address,
-                         Dst_Addr             => SPI.Data_Address);
-
-      Enable (DMA_Screen_SPI);
-
-      --  Wait for the end of the data transfer
-      while not SAM.DMAC.Set (DMA_Screen_SPI, SAM.DMAC.Transfer_Complete) loop
-         Asm (Template => "wfi", -- Wait for interrupt
-              Volatile => True);
-      end loop;
-   end Transmit_DMA;
-
    -----------------
    -- Push_Pixels --
    -----------------
 
-   procedure Push_Pixels (Data : HAL.UInt16_Array) is
-      Data_8b : HAL.UInt8_Array (1 .. Data'Length * 2)
-        with Address => Data'Address;
+   procedure Push_Pixels (Data : aliased HAL.UInt16_Array) is
    begin
-      Transmit_DMA (Data_8b);
+      Start_DMA (Data'Unchecked_Access);
+      Wait_End_Of_DMA;
    end Push_Pixels;
 
    -----------------
    -- Push_Pixels --
    -----------------
 
-   procedure Push_Pixels_Swap (Data : in out HAL.UInt16_Array) is
+   procedure Push_Pixels_Swap (Data : aliased in out HAL.UInt16_Array) is
       Data_8b : HAL.UInt8_Array (1 .. Data'Length * 2)
         with Address => Data'Address;
       Index : Natural := Data_8b'First + 1;
@@ -265,7 +244,8 @@ package body PyGamer.Screen is
          Index := Index + 1;
       end loop;
 
-      Transmit_DMA (Data_8b);
+      Start_DMA (Data'Unchecked_Access);
+      Wait_End_Of_DMA;
    end Push_Pixels_Swap;
 
    ------------
@@ -292,6 +272,36 @@ package body PyGamer.Screen is
    begin
       Device.Scroll (Val);
    end Scroll;
+
+   ---------------
+   -- Start_DMA --
+   ---------------
+
+   procedure Start_DMA (Data : not null Framebuffer_Access) is
+   begin
+      Clear (DMA_Screen_SPI, Transfer_Complete);
+
+      Set_Data_Transfer (DMA_Descs (DMA_Screen_SPI),
+                         Block_Transfer_Count => Data.all'Length * 2,
+                         Src_Addr             => Data.all'Address,
+                         Dst_Addr             => SPI.Data_Address);
+
+      Enable (DMA_Screen_SPI);
+
+   end Start_DMA;
+
+   ---------------------
+   -- Wait_End_Of_DMA --
+   ---------------------
+
+   procedure Wait_End_Of_DMA is
+   begin
+      --  Wait for the end of the data transfer
+      while not SAM.DMAC.Set (DMA_Screen_SPI, SAM.DMAC.Transfer_Complete) loop
+         Asm (Template => "wfi", -- Wait for interrupt
+              Volatile => True);
+      end loop;
+   end Wait_End_Of_DMA;
 
 begin
    Initialize;
