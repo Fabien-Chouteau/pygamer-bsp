@@ -1,0 +1,13 @@
+name = "pygamer_bsp"
+version = "0.2.0"
+
+description = "Board Support Package for the AdaFruit PyGamer"
+licenses = ["BSD 3-Clauses"]
+maintainers = ["fabien.chouteau@gmail.com"]
+maintainers-logins = ["Fabien-Chouteau"]
+project-files = ["pygamer_bsp.gpr"]
+tags = ["embedded", "nostd", "pygamer", "adafruit", "game", "console", "bsp"]
+
+[[depends-on]]
+cortex_m = "^0.1.0"
+samd51_hal = "^0.1.0"
