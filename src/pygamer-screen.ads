@@ -1,3 +1,4 @@
+with System;
 with HAL;
 with HAL.Bitmap;
 
@@ -11,21 +12,19 @@ package PyGamer.Screen is
    procedure Start_Pixel_TX;
    procedure End_Pixel_TX;
 
-   procedure Push_Pixels (Data : aliased HAL.UInt16_Array);
+   procedure Push_Pixels (Addr : System.Address; Len : Natural);
+   --  Addr: pointer to a read-only buffer of Len pixels (16-bit RGB565)
 
-   procedure Push_Pixels_Swap (Data : aliased in out HAL.UInt16_Array);
-
-   function Buffer return HAL.Bitmap.Any_Bitmap_Buffer;
-
-   procedure Update;
+   procedure Push_Pixels_Swap (Addr : System.Address; Len : Natural);
+   --  Addr: pointer to a read-write buffer of Len pixels (16-bit RGB565)
 
    procedure Scroll (Val : HAL.UInt8);
 
    -- DMA --
 
-   type Framebuffer_Access is access constant HAL.UInt16_Array;
+   procedure Start_DMA (Addr : System.Address; Len : Natural);
+   --  Addr: pointer to a read-only buffer of Len pixels (16-bit RGB565)
 
-   procedure Start_DMA (Data : not null Framebuffer_Access);
    procedure Wait_End_Of_DMA;
 
 end PyGamer.Screen;

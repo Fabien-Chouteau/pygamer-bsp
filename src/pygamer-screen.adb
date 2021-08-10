@@ -220,9 +220,9 @@ package body PyGamer.Screen is
    -- Push_Pixels --
    -----------------
 
-   procedure Push_Pixels (Data : aliased HAL.UInt16_Array) is
+   procedure Push_Pixels (Addr : System.Address; Len : Natural) is
    begin
-      Start_DMA (Data'Unchecked_Access);
+      Start_DMA (Addr, Len);
       Wait_End_Of_DMA;
    end Push_Pixels;
 
@@ -230,9 +230,9 @@ package body PyGamer.Screen is
    -- Push_Pixels --
    -----------------
 
-   procedure Push_Pixels_Swap (Data : aliased in out HAL.UInt16_Array) is
-      Data_8b : HAL.UInt8_Array (1 .. Data'Length * 2)
-        with Address => Data'Address;
+   procedure Push_Pixels_Swap (Addr : System.Address; Len : Natural) is
+      Data_8b : HAL.UInt8_Array (1 .. Len * 2)
+        with Address => Addr;
       Index : Natural := Data_8b'First + 1;
       Tmp   : UInt8;
 
@@ -244,7 +244,7 @@ package body PyGamer.Screen is
          Index := Index + 1;
       end loop;
 
-      Start_DMA (Data'Unchecked_Access);
+      Start_DMA (Data_8b'Address, Len);
       Wait_End_Of_DMA;
    end Push_Pixels_Swap;
 
@@ -277,13 +277,13 @@ package body PyGamer.Screen is
    -- Start_DMA --
    ---------------
 
-   procedure Start_DMA (Data : not null Framebuffer_Access) is
+   procedure Start_DMA (Addr : System.Address; Len : Natural) is
    begin
       Clear (DMA_Screen_SPI, Transfer_Complete);
 
       Set_Data_Transfer (DMA_Descs (DMA_Screen_SPI),
-                         Block_Transfer_Count => Data.all'Length * 2,
-                         Src_Addr             => Data.all'Address,
+                         Block_Transfer_Count => UInt16 (Len * 2),
+                         Src_Addr             => Addr,
                          Dst_Addr             => SPI.Data_Address);
 
       Enable (DMA_Screen_SPI);
