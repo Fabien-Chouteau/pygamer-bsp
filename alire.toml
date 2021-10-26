@@ -8,6 +8,9 @@ maintainers-logins = ["Fabien-Chouteau"]
 project-files = ["pygamer_bsp.gpr"]
 tags = ["embedded", "nostd", "pygamer", "adafruit", "game", "console", "bsp"]
 
+[configuration]
+disabled = true
+
 [[depends-on]]
 cortex_m = "~0.1.0"
-samd51_hal = "~0.1.0"
+samd51_hal = "~0.3.0"
